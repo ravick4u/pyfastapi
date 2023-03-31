@@ -5,9 +5,12 @@
 from msilib import type_nullable
 from random import randrange
 from typing import List, Optional
+from typing_extensions import deprecated
 from urllib import response
 from fastapi import Depends, FastAPI, Response, status, HTTPException
 import psycopg
+
+from app import util
 # from psycopg.cursor import RealDictCursor
 from . import models
 from .database import engine, SessionLocal, get_db
@@ -16,6 +19,7 @@ from . import schema
 
 models.Base.metadata.create_all(bind=engine)
 # Dependency
+
 
 app = FastAPI()
 
@@ -267,3 +271,72 @@ def update_post(id: int, update_post: schema.PostUpdate):
                             detail=f"Post with {id} not found")
 
     return return_post
+
+
+@app.get("/users", response_model=List[schema.User])
+def get_all_users(db: Session = Depends(get_db)):
+    '''Get all Users
+    '''
+    all_users = db.query(models.User).all()
+
+    return all_users
+
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schema.User)
+def create_user(newuser: schema.UserCreate, db: Session = Depends(get_db)):
+    '''Create User
+    '''
+
+    # hash the password
+    hashed_password = util.hash(newuser.password)
+    newuser.password = hashed_password
+    new_user = models.User(**newuser.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    print(new_user)
+    return new_user
+
+
+@app.put('/users/{id}', response_model=schema.User)
+def update_user(id: int, update_post: schema.UserUpdate, db: Session = Depends(get_db)):
+    '''Update User'''
+
+    update_user_query = db.query(models.User).filter(models.User.id == id)
+
+    if update_user_query.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"User with {id} not found")
+
+    update_user_query.update(update_post.dict())
+    db.commit()
+
+    return update_user_query.first()
+
+
+@app.delete('/users/{id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(id: int, db: Session = Depends(get_db)):
+    '''Delete user'''
+
+    user_to_delete_query = db.query(models.User).filter(models.User.id == id)
+    if user_to_delete_query.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"User with {id} not found")
+    user_to_delete_query.delete()
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.get('/user/{id}', response_model=schema.User)
+def get_post(id: int, db: Session = Depends(get_db)):
+    '''Get single User'''
+
+    return_user = db.query(models.User).filter(models.User.id == id).first()
+
+    if return_user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"User with {id} not found")
+    else:
+        return return_user

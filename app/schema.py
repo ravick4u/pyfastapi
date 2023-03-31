@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class PostBase(BaseModel):
@@ -22,6 +22,28 @@ class PostUpdate(PostBase):
 class Post(PostBase):
     '''Post class to be used in returning data'''
     id: int
+    created: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class UserBase(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserCreate(UserBase):
+    pass
+
+
+class UserUpdate(UserBase):
+    pass
+
+
+class User(BaseModel):
+    id: int
+    email: EmailStr
     created: datetime
 
     class Config:
