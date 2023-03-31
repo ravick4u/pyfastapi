@@ -7,12 +7,12 @@ from random import randrange
 from typing import Optional
 from urllib import response
 from fastapi import Depends, FastAPI, Response, status, HTTPException
-from pydantic import BaseModel
 import psycopg
 # from psycopg.cursor import RealDictCursor
 from . import models
 from .database import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session
+from . import schema
 
 models.Base.metadata.create_all(bind=engine)
 # Dependency
@@ -42,13 +42,6 @@ def test_connection():
 
 
 test_connection()
-
-
-class Post(BaseModel):
-    '''Post Class'''
-    title: str
-    content: str
-    published: bool = True
 
 
 my_posts = [
@@ -81,7 +74,7 @@ def v2_get_posts(db: Session = Depends(get_db)):
 
 
 @app.post("/v2/posts", status_code=status.HTTP_201_CREATED)
-def v2_create_posts(newpost: Post, db: Session = Depends(get_db)):
+def v2_create_posts(newpost: schema.Post, db: Session = Depends(get_db)):
     '''Create Posts
     '''
 
@@ -127,7 +120,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @app.put('/v2/posts/{id}')
-def update_post(id: int, update_post: Post, db: Session = Depends(get_db)):
+def update_post(id: int, update_post: schema.Post, db: Session = Depends(get_db)):
     '''Update Post'''
 
     update_post_query = db.query(models.Post).filter(models.Post.id == id)
@@ -173,7 +166,7 @@ def get_posts():
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(newpost: Post):
+def create_posts(newpost: schema.Post):
     '''Create Posts
     '''
 
@@ -258,7 +251,7 @@ def delete_post(id: int):
 
 
 @app.put('/posts/{id}')
-def update_post(id: int, update_post: Post):
+def update_post(id: int, update_post: schema.Post):
     '''Update Post'''
     return_post = None
 
