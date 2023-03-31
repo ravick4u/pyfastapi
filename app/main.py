@@ -6,11 +6,16 @@ from msilib import type_nullable
 from random import randrange
 from typing import Optional
 from urllib import response
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import Depends, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
 import psycopg
 # from psycopg.cursor import RealDictCursor
+from . import models
+from .database import engine, SessionLocal, get_db
+from sqlalchemy.orm import Session
 
+models.Base.metadata.create_all(bind=engine)
+# Dependency
 
 app = FastAPI()
 
@@ -56,6 +61,11 @@ my_posts = [
         "id": 1
     }
 ]
+
+
+@app.route('/testsqlalchemy')
+def testsqlalchemy(db: Session = Depends(get_db)):
+    return {"status": "success"}
 
 
 @app.get("/")
