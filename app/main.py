@@ -49,7 +49,6 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
 
 
 my_posts = [
@@ -63,9 +62,86 @@ my_posts = [
 ]
 
 
-@app.route('/testsqlalchemy')
+@app.get('/testsqlalchemy')
 def testsqlalchemy(db: Session = Depends(get_db)):
-    return {"status": "success"}
+    all_posts = db.query(models.Post).all()
+    return {"data": all_posts}
+
+
+@app.get("/v2/posts")
+def v2_get_posts(db: Session = Depends(get_db)):
+    '''Get all posts
+    '''
+    my_posts = None
+    try:
+        my_posts = db.query(models.Post).all()
+    except:
+        print("Connection failed")
+    return {"data": my_posts}
+
+
+@app.post("/v2/posts", status_code=status.HTTP_201_CREATED)
+def v2_create_posts(newpost: Post, db: Session = Depends(get_db)):
+    '''Create Posts
+    '''
+
+    new_post = None
+
+    try:
+        new_post = models.Post(**newpost.dict())
+        db.add(new_post)
+        db.commit()
+        db.refresh(new_post)
+
+    except Exception as ex:
+        print("Connection failed", ex)
+
+    return {"data": new_post}
+
+
+@app.get('/v2/posts/{id}')
+def get_post(id: int, db: Session = Depends(get_db)):
+    '''Get single post'''
+
+    return_post = db.query(models.Post).filter(models.Post.id == id).first()
+
+    if return_post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Post with {id} not found")
+    else:
+        return {"data": return_post}
+
+
+@app.delete('/v2/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int, db: Session = Depends(get_db)):
+    '''Delete post'''
+
+    post_to_delete_query = db.query(models.Post).filter(models.Post.id == id)
+    if post_to_delete_query.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Post with {id} not found")
+    post_to_delete_query.delete()
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.put('/v2/posts/{id}')
+def update_post(id: int, update_post: Post, db: Session = Depends(get_db)):
+    '''Update Post'''
+
+    update_post_query = db.query(models.Post).filter(models.Post.id == id)
+
+    if update_post_query.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Post with {id} not found")
+
+    update_post_query.update(update_post.dict())
+    db.commit()
+
+    return {
+        "data": update_post_query.first()
+    }
 
 
 @app.get("/")
