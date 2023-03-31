@@ -4,7 +4,7 @@
 
 from msilib import type_nullable
 from random import randrange
-from typing import Optional
+from typing import List, Optional
 from urllib import response
 from fastapi import Depends, FastAPI, Response, status, HTTPException
 import psycopg
@@ -61,38 +61,30 @@ def testsqlalchemy(db: Session = Depends(get_db)):
     return all_posts
 
 
-@app.get("/v2/posts")
+@app.get("/v2/posts", response_model=List[schema.Post])
 def v2_get_posts(db: Session = Depends(get_db)):
     '''Get all posts
     '''
-    my_posts = None
-    try:
-        my_posts = db.query(models.Post).all()
-    except:
-        print("Connection failed")
+    my_posts = db.query(models.Post).all()
+
     return my_posts
 
 
-@app.post("/v2/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/v2/posts", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
 def v2_create_posts(newpost: schema.PostCreate, db: Session = Depends(get_db)):
     '''Create Posts
     '''
 
-    new_post = None
+    new_post = models.Post(**newpost.dict())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
 
-    try:
-        new_post = models.Post(**newpost.dict())
-        db.add(new_post)
-        db.commit()
-        db.refresh(new_post)
-
-    except Exception as ex:
-        print("Connection failed", ex)
-
+    print(new_post)
     return new_post
 
 
-@app.get('/v2/posts/{id}')
+@app.get('/v2/posts/{id}', response_model=schema.Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     '''Get single post'''
 
@@ -119,7 +111,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put('/v2/posts/{id}')
+@app.put('/v2/posts/{id}', response_model=schema.Post)
 def update_post(id: int, update_post: schema.PostUpdate, db: Session = Depends(get_db)):
     '''Update Post'''
 

@@ -1,16 +1,28 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
 class PostBase(BaseModel):
-    '''Post Class'''
+    '''Post Base Class'''
     title: str
     content: str
     published: bool = True
 
 
 class PostCreate(PostBase):
+    '''Post Class to be used in Create'''
     pass
 
 
 class PostUpdate(PostBase):
+    '''Post class to be used in Update'''
     pass
+
+
+class Post(PostBase):
+    '''Post class to be used in returning data'''
+    id: int
+    created: datetime
+
+    class Config:
+        orm_mode = True
