@@ -58,7 +58,7 @@ my_posts = [
 @app.get('/testsqlalchemy')
 def testsqlalchemy(db: Session = Depends(get_db)):
     all_posts = db.query(models.Post).all()
-    return {"data": all_posts}
+    return all_posts
 
 
 @app.get("/v2/posts")
@@ -70,11 +70,11 @@ def v2_get_posts(db: Session = Depends(get_db)):
         my_posts = db.query(models.Post).all()
     except:
         print("Connection failed")
-    return {"data": my_posts}
+    return my_posts
 
 
 @app.post("/v2/posts", status_code=status.HTTP_201_CREATED)
-def v2_create_posts(newpost: schema.Post, db: Session = Depends(get_db)):
+def v2_create_posts(newpost: schema.PostCreate, db: Session = Depends(get_db)):
     '''Create Posts
     '''
 
@@ -89,7 +89,7 @@ def v2_create_posts(newpost: schema.Post, db: Session = Depends(get_db)):
     except Exception as ex:
         print("Connection failed", ex)
 
-    return {"data": new_post}
+    return new_post
 
 
 @app.get('/v2/posts/{id}')
@@ -102,7 +102,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with {id} not found")
     else:
-        return {"data": return_post}
+        return return_post
 
 
 @app.delete('/v2/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
@@ -120,7 +120,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @app.put('/v2/posts/{id}')
-def update_post(id: int, update_post: schema.Post, db: Session = Depends(get_db)):
+def update_post(id: int, update_post: schema.PostUpdate, db: Session = Depends(get_db)):
     '''Update Post'''
 
     update_post_query = db.query(models.Post).filter(models.Post.id == id)
@@ -132,9 +132,7 @@ def update_post(id: int, update_post: schema.Post, db: Session = Depends(get_db)
     update_post_query.update(update_post.dict())
     db.commit()
 
-    return {
-        "data": update_post_query.first()
-    }
+    return update_post_query.first()
 
 
 @app.get("/")
@@ -162,11 +160,11 @@ def get_posts():
                 my_posts = cur.fetchall()
     except:
         print("Connection failed")
-    return {"data": my_posts}
+    return my_posts
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(newpost: schema.Post):
+def create_posts(newpost: schema.PostCreate):
     '''Create Posts
     '''
 
@@ -189,7 +187,7 @@ def create_posts(newpost: schema.Post):
     except Exception as ex:
         print("Connection failed", ex)
 
-    return {"data": return_post}
+    return return_post
 
 
 @app.get('/posts/{id}')
@@ -218,7 +216,7 @@ def get_post(id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with {id} not found")
     else:
-        return {"data": return_post}
+        return return_post
 
 
 @app.delete('/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
@@ -251,7 +249,7 @@ def delete_post(id: int):
 
 
 @app.put('/posts/{id}')
-def update_post(id: int, update_post: schema.Post):
+def update_post(id: int, update_post: schema.PostUpdate):
     '''Update Post'''
     return_post = None
 
@@ -276,6 +274,4 @@ def update_post(id: int, update_post: schema.Post):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with {id} not found")
 
-    return {
-        "data": return_post
-    }
+    return return_post
