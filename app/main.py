@@ -300,7 +300,7 @@ def create_user(newuser: schema.UserCreate, db: Session = Depends(get_db)):
 
 
 @app.put('/users/{id}', response_model=schema.User)
-def update_user(id: int, update_post: schema.UserUpdate, db: Session = Depends(get_db)):
+def update_user(id: int, update_user: schema.UserUpdate, db: Session = Depends(get_db)):
     '''Update User'''
 
     update_user_query = db.query(models.User).filter(models.User.id == id)
@@ -309,7 +309,12 @@ def update_user(id: int, update_post: schema.UserUpdate, db: Session = Depends(g
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with {id} not found")
 
-    update_user_query.update(update_post.dict())
+    hashed_password = util.hash(update_user.password)
+    print('hashed')
+    print(hashed_password)
+    update_user.password = hashed_password
+
+    update_user_query.update(update_user.dict())
     db.commit()
 
     return update_user_query.first()

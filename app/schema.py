@@ -43,7 +43,6 @@ class UserUpdate(UserBase):
 
 class User(BaseModel):
     id: int
-    email: EmailStr
     created: datetime
 
     class Config:
