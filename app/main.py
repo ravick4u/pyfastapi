@@ -335,7 +335,7 @@ def delete_user(id: int, db: Session = Depends(get_db)):
 
 
 @app.get('/user/{id}', response_model=schema.User)
-def get_post(id: int, db: Session = Depends(get_db)):
+def get_user(id: int, db: Session = Depends(get_db)):
     '''Get single User'''
 
     return_user = db.query(models.User).filter(models.User.id == id).first()
