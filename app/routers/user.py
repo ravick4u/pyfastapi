@@ -10,10 +10,12 @@ from sqlalchemy.orm import Session
 from ..database import engine, SessionLocal, get_db
 import sys
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/users"
+)
 
 
-@router.get("/users", response_model=List[schema.User])
+@router.get("", response_model=List[schema.User])
 def get_all_users(db: Session = Depends(get_db)):
     '''Get all Users
     '''
@@ -22,7 +24,7 @@ def get_all_users(db: Session = Depends(get_db)):
     return all_users
 
 
-@router.post("/users", status_code=status.HTTP_201_CREATED, response_model=schema.User)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=schema.User)
 def create_user(newuser: schema.UserCreate, db: Session = Depends(get_db)):
     '''Create User
     '''
@@ -39,7 +41,7 @@ def create_user(newuser: schema.UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
-@router.put('/users/{id}', response_model=schema.User)
+@router.put('/{id}', response_model=schema.User)
 def update_user(id: int, update_user: schema.UserUpdate, db: Session = Depends(get_db)):
     '''Update User'''
 
@@ -60,7 +62,7 @@ def update_user(id: int, update_user: schema.UserUpdate, db: Session = Depends(g
     return update_user_query.first()
 
 
-@router.delete('/users/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(id: int, db: Session = Depends(get_db)):
     '''Delete user'''
 
@@ -74,7 +76,7 @@ def delete_user(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get('/user/{id}', response_model=schema.User)
+@router.get('/{id}', response_model=schema.User)
 def get_user(id: int, db: Session = Depends(get_db)):
     '''Get single User'''
 

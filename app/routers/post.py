@@ -6,10 +6,12 @@ from fastapi import APIRouter, Depends, Response, status, HTTPException
 from .. import models, schema, util
 from ..database import engine, SessionLocal, get_db
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/v2/posts"
+)
 
 
-@router.get("/v2/posts", response_model=List[schema.Post])
+@router.get("/", response_model=List[schema.Post])
 def v2_get_posts(db: Session = Depends(get_db)):
     '''Get all posts
     '''
@@ -18,7 +20,7 @@ def v2_get_posts(db: Session = Depends(get_db)):
     return my_posts
 
 
-@router.post("/v2/posts", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
 def v2_create_posts(newpost: schema.PostCreate, db: Session = Depends(get_db)):
     '''Create Posts
     '''
@@ -32,7 +34,7 @@ def v2_create_posts(newpost: schema.PostCreate, db: Session = Depends(get_db)):
     return new_post
 
 
-@router.get('/v2/posts/{id}', response_model=schema.Post)
+@router.get('/{id}', response_model=schema.Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     '''Get single post'''
 
@@ -45,7 +47,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
         return return_post
 
 
-@router.delete('/v2/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
     '''Delete post'''
 
@@ -59,7 +61,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put('/v2/posts/{id}', response_model=schema.Post)
+@router.put('/{id}', response_model=schema.Post)
 def update_post(id: int, update_post: schema.PostUpdate, db: Session = Depends(get_db)):
     '''Update Post'''
 
@@ -75,136 +77,136 @@ def update_post(id: int, update_post: schema.PostUpdate, db: Session = Depends(g
     return update_post_query.first()
 
 
-@router.get("/posts")
-def get_posts():
-    '''Get all posts
-    '''
-    try:
-        # Connect to an existing database
-        # /* eslint-disable-line not -context-manager * /
-        with psycopg.connect(postgres_connection_string) as conn:
+# @router.get("/posts")
+# def get_posts():
+#     '''Get all posts
+#     '''
+#     try:
+#         # Connect to an existing database
+#         # /* eslint-disable-line not -context-manager * /
+#         with psycopg.connect(postgres_connection_string) as conn:
 
-            # Open a cursor to perform database operations
-            with conn.cursor() as cur:
-                print("connection succss")
-                cur.execute("""
-                    SELECT * FROM posts
-                    """)
-                my_posts = cur.fetchall()
-    except:
-        print("Connection failed")
-    return my_posts
-
-
-@router.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(newpost: schema.PostCreate):
-    '''Create Posts
-    '''
-
-    return_post = None
-
-    try:
-        # Connect to an existing database
-        # /* eslint-disable-line not -context-manager * /
-        with psycopg.connect(postgres_connection_string) as conn:
-
-            # Open a cursor to perform database operations
-            with conn.cursor() as cur:
-                print("connection succss")
-                cur.execute("""
-                    INSERT INTO posts(title,content,published) VALUES (%s, %s, %s) RETURNING *
-                    """, (newpost.title, newpost.content, newpost.published))
-                return_post = cur.fetchone()
-                conn.commit()
-
-    except Exception as ex:
-        print("Connection failed", ex)
-
-    return return_post
+#             # Open a cursor to perform database operations
+#             with conn.cursor() as cur:
+#                 print("connection succss")
+#                 cur.execute("""
+#                     SELECT * FROM posts
+#                     """)
+#                 my_posts = cur.fetchall()
+#     except:
+#         print("Connection failed")
+#     return my_posts
 
 
-@router.get('/posts/{id}')
-def get_post(id: int):
-    '''Get single post'''
+# @router.post("/posts", status_code=status.HTTP_201_CREATED)
+# def create_posts(newpost: schema.PostCreate):
+#     '''Create Posts
+#     '''
 
-    return_post = None
+#     return_post = None
 
-    try:
-        # Connect to an existing database
-        # /* eslint-disable-line not -context-manager * /
-        with psycopg.connect(postgres_connection_string) as conn:
+#     try:
+#         # Connect to an existing database
+#         # /* eslint-disable-line not -context-manager * /
+#         with psycopg.connect(postgres_connection_string) as conn:
 
-            # Open a cursor to perform database operations
-            with conn.cursor() as cur:
-                print("connection succss")
-                cur.execute("""
-                    SELECT * FROM posts WHERE id = %s
-                    """, (id,))
-                return_post = cur.fetchone()
+#             # Open a cursor to perform database operations
+#             with conn.cursor() as cur:
+#                 print("connection succss")
+#                 cur.execute("""
+#                     INSERT INTO posts(title,content,published) VALUES (%s, %s, %s) RETURNING *
+#                     """, (newpost.title, newpost.content, newpost.published))
+#                 return_post = cur.fetchone()
+#                 conn.commit()
 
-    except Exception as ex:
-        print("Connection failed", ex)
+#     except Exception as ex:
+#         print("Connection failed", ex)
 
-    if return_post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Post with {id} not found")
-    else:
-        return return_post
+#     return return_post
 
 
-@router.delete('/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int):
-    '''Delete post'''
+# @router.get('/posts/{id}')
+# def get_post(id: int):
+#     '''Get single post'''
 
-    post_to_delete = None
-    try:
-        # Connect to an existing database
-        # /* eslint-disable-line not -context-manager * /
-        with psycopg.connect(postgres_connection_string) as conn:
+#     return_post = None
 
-            # Open a cursor to perform database operations
-            with conn.cursor() as cur:
-                print("connection succss")
-                cur.execute("""
-                    DELETE FROM posts WHERE id = %s RETURNING *
-                    """, (id,))
-                post_to_delete = cur.fetchone()
-                # conn.execute()
+#     try:
+#         # Connect to an existing database
+#         # /* eslint-disable-line not -context-manager * /
+#         with psycopg.connect(postgres_connection_string) as conn:
 
-    except Exception as ex:
-        print("Connection failed", ex)
+#             # Open a cursor to perform database operations
+#             with conn.cursor() as cur:
+#                 print("connection succss")
+#                 cur.execute("""
+#                     SELECT * FROM posts WHERE id = %s
+#                     """, (id,))
+#                 return_post = cur.fetchone()
 
-    if post_to_delete is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Post with {id} not found")
+#     except Exception as ex:
+#         print("Connection failed", ex)
 
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+#     if return_post is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#                             detail=f"Post with {id} not found")
+#     else:
+#         return return_post
 
 
-@router.put('/posts/{id}')
-def update_post(id: int, update_post: schema.PostUpdate):
-    '''Update Post'''
-    return_post = None
+# @router.delete('/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
+# def delete_post(id: int):
+#     '''Delete post'''
 
-    try:
-        # Connect to an existing database
-        # /* eslint-disable-line not -context-manager * /
-        with psycopg.connect(postgres_connection_string) as conn:
+#     post_to_delete = None
+#     try:
+#         # Connect to an existing database
+#         # /* eslint-disable-line not -context-manager * /
+#         with psycopg.connect(postgres_connection_string) as conn:
 
-            # Open a cursor to perform database operations
-            with conn.cursor() as cur:
-                print("connection succss")
-                cur.execute("""
-                    UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *
-                    """, (update_post.title, update_post.content, update_post.published, id))
-                return_post = cur.fetchone()
-                conn.commit()
+#             # Open a cursor to perform database operations
+#             with conn.cursor() as cur:
+#                 print("connection succss")
+#                 cur.execute("""
+#                     DELETE FROM posts WHERE id = %s RETURNING *
+#                     """, (id,))
+#                 post_to_delete = cur.fetchone()
+#                 # conn.execute()
 
-    except Exception as ex:
-        print("Connection failed", ex)
+#     except Exception as ex:
+#         print("Connection failed", ex)
 
-    if return_post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Post with {id} not found")
+#     if post_to_delete is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#                             detail=f"Post with {id} not found")
 
-    return return_post
+#     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# @router.put('/posts/{id}')
+# def update_post(id: int, update_post: schema.PostUpdate):
+#     '''Update Post'''
+#     return_post = None
+
+#     try:
+#         # Connect to an existing database
+#         # /* eslint-disable-line not -context-manager * /
+#         with psycopg.connect(postgres_connection_string) as conn:
+
+#             # Open a cursor to perform database operations
+#             with conn.cursor() as cur:
+#                 print("connection succss")
+#                 cur.execute("""
+#                     UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *
+#                     """, (update_post.title, update_post.content, update_post.published, id))
+#                 return_post = cur.fetchone()
+#                 conn.commit()
+
+#     except Exception as ex:
+#         print("Connection failed", ex)
+
+#     if return_post is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#                             detail=f"Post with {id} not found")
+
+#     return return_post
