@@ -11,7 +11,8 @@ from ..database import engine, SessionLocal, get_db
 import sys
 
 router = APIRouter(
-    prefix="/users"
+    prefix="/users",
+    tags=["Users"]
 )
 
 

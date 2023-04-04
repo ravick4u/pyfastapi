@@ -7,7 +7,8 @@ from .. import models, schema, util
 from ..database import engine, SessionLocal, get_db
 
 router = APIRouter(
-    prefix="/v2/posts"
+    prefix="/v2/posts",
+    tags=["Posts"]
 )
 
 
