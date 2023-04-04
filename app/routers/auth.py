@@ -2,8 +2,7 @@ from tkinter import RAISED
 from fastapi import APIRouter, Depends, status, HTTPException, Response
 from sqlalchemy.orm import Session
 
-from .. import database, schema, models, util
-
+from .. import database, schema, models, util, oauth2
 
 router = APIRouter(tags=['Authentication'])
 
@@ -18,3 +17,7 @@ def login(user_credentials: schema.UserLogin, db: Session = Depends(database.get
     if not util.verify(user_credentials.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='Invalid Credentials2')
+
+    access_token = oauth2.create_access_token(data={"user_id": user.email})
+
+    return {"access_token": access_token, "token_type": "bearer"}
