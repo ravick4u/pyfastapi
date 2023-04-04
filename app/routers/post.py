@@ -3,6 +3,8 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 import psycopg
 from fastapi import APIRouter, Depends, Response, status, HTTPException
+
+from app import oauth2
 from .. import models, schema, util
 from ..database import engine, SessionLocal, get_db
 
@@ -22,7 +24,7 @@ def v2_get_posts(db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
-def v2_create_posts(newpost: schema.PostCreate, db: Session = Depends(get_db)):
+def v2_create_posts(newpost: schema.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     '''Create Posts
     '''
 
